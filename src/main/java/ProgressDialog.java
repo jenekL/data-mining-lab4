@@ -56,11 +56,7 @@ public class ProgressDialog {
     progressBar.setVisible(true);
     dialog.setAlwaysOnTop(true);
   }
-  /** Метод, отображающий диалог */
-  public void showDialog(){
-    dialog.setVisible(true);
-    dialog.setAlwaysOnTop(true);
-  }
+
   /** Метод, закрывающий диалог */
   public void closeDialog(){
     if (dialog.isVisible()){

@@ -20,7 +20,9 @@ import javax.swing.*;
 public class GraphPanel extends JPanel {
     
     public GraphPanel(final double[] X, final double[] Y, final double[] Xn, final double[] Yn,
-                      final Color mainColor, final Color testColor) {
+                      final Color mainColor, final Color testColor,
+                      final double[] tX, final double[] tY, final double[] tXn, final double[] tYn,
+                      final Color tTestColor) {
         
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         add(new JPanel() {
@@ -69,8 +71,36 @@ public class GraphPanel extends JPanel {
                             minY = Yn[i];
                         }
                     }
+                    for (int i = 0; i < tX.length; i++) {
+
+                        if (tX[i] > maxX) {
+                            maxX = tX[i];
+                        }
+                        if (tX[i] < minX) {
+                            minX = tX[i];
+                        }
+                        if (tY[i] > maxY) {
+                            maxY = tY[i];
+                        }
+                        if (tY[i] < minY) {
+                            minY = tY[i];
+                        }
+                    }
+                    for(int i = 0; i < tXn.length; i++){
+                        if (tXn[i] > maxX) {
+                            maxX = tXn[i];
+                        }
+                        if (tXn[i] < minX) {
+                            minX = tXn[i];
+                        }
+                        if (tYn[i] > maxY) {
+                            maxY = tYn[i];
+                        }
+                        if (tYn[i] < minY) {
+                            minY = tYn[i];
+                        }
+                    }
                     double d = 1;
-                    maxX += 20;
                     minX *= d;
                     maxX *= d;
                     minY *= d;
@@ -97,13 +127,21 @@ public class GraphPanel extends JPanel {
                         g2d.drawString(Double.toString((double) ((int) (i * 100)) / 100), s_x + 15, y);
                     }
                     g2d.setColor(mainColor);
-                    
                     for (int j = 0; j < X.length - 1; j++) {
                         drawLine(X[j], Y[j], X[j + 1], Y[j + 1], g2d, m_x, m_y, minX, maxY);
+                    }
+                    for (int j = 0; j < tX.length - 1; j++) {
+                        drawLine(tX[j], tY[j], tX[j + 1], tY[j + 1], g2d, m_x, m_y, minX, maxY);
                     }
                     g2d.setColor(testColor);
                     for (int j = 0; j < Xn.length - 1; j++) {
                         drawLine(Xn[j], Yn[j], Xn[j + 1], Yn[j + 1], g2d, m_x, m_y, minX, maxY);
+                    }
+
+
+                    g2d.setColor(tTestColor);
+                    for (int j = 0; j < tXn.length - 1; j++) {
+                        drawLine(tXn[j], tYn[j], tXn[j + 1], tYn[j + 1], g2d, m_x, m_y, minX, maxY);
                     }
                 }
                 

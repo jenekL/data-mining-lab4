@@ -4,7 +4,7 @@
  */
 
 /**
- * @author Mike
+ * @author Jenya
  */
 public class Handler {
 

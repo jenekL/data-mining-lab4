@@ -5,7 +5,7 @@
 
 /**
  *
- * @author Mike
+ * @author Jenya
  */
 public interface IFunction {
     double compute(double x);

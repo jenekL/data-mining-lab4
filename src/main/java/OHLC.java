@@ -1,16 +1,36 @@
 public class OHLC {
+    private String date;
+    private String time;
     private double open;
     private double high;
     private double low;
     private double close;
     private double vol;
 
-    public OHLC(double open, double high, double low, double close, double vol) {
+    public OHLC(String date, String time, double open, double high, double low, double close, double vol) {
+        this.date = date;
+        this.time = time;
         this.open = open;
         this.high = high;
         this.low = low;
         this.close = close;
         this.vol = vol;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public double getOpen() {

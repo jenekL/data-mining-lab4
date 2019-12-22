@@ -3,125 +3,209 @@
  * and open the template in the editor.
  */
 
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+
 /**
  * @author Jenya
  */
 public class Handler {
 
-    private double ta;
-    private double tb;
-    private int sizeV;
+    private int K;
     private double ya = 10000;
     private double yb = -1000;
-    private double[] X;
-    private double[] Y;
-    private int N;
+    private int N = 0;
     private NET net;
     private double[][] pointsEd;
-    private double[][] pointsTest;
     private double eEd = 0;
     private double eTest = 0;
 
-    public Handler(int size, int sizeV, double ta, double tb) {
-        N = size;
-        this.sizeV = sizeV;
-        this.ta = ta;
-        this.tb = tb;
-        X = new double[N];
-        Y = new double[N];
+    private List<OHLC> ohlcList = new ArrayList<>();
+    private int nTest;
+    private int nStudy;
+
+    XYPlot  plot;
+
+    public Handler(int sizeV, XYPlot plot) {
+        this.K = sizeV;
         pointsEd = new double[4][];
-        pointsTest = new double[4][];
-        createXY();
+
+        try {
+            readFile("data.csv");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        double[] k_study = getK(nStudy);
+        double[] k_test = getK(nTest);
+
+        System.out.println(Arrays.toString(k_study));
+        System.out.println(Arrays.toString(k_test));
+
+        this.plot = plot;
     }
+
+    private void readFile(String filename) throws FileNotFoundException {
+        N = 0;
+
+        Scanner myReader = new Scanner(new File(filename));
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine();
+            if (!data.contains("<")) {
+                String[] split = data.split(",");
+                ohlcList.add(new OHLC(split[2], split[3], Double.parseDouble(split[4]), Double.parseDouble(split[5]),
+                        Double.parseDouble(split[6]), Double.parseDouble(split[7]), Double.parseDouble(split[8])));
+                N++;
+            }
+        }
+
+        nTest = N / 4;
+        nStudy = N - nTest;
+
+        ya = ohlcList.get(0).getOpen();
+        yb = ohlcList.get(N - 1).getOpen();
+
+        myReader.close();
+    }
+
+    private double[] getK(int n) {
+        double[] k = new double[n];
+        int i_k = 0;
+        double sr = 0;
+        for (int i = 0; i < nStudy; i++, i_k++) {
+            sr += ohlcList.get(i).getOpen();
+        }
+        sr /= nStudy;
+
+        double chisl = 0;
+        double znam = 0;
+
+        for (int k_i = 0; k_i < n; k_i++) {
+            for (int i = k_i + 1; i < n; i++) {
+                chisl += ((ohlcList.get(i).getOpen() - sr) * (ohlcList.get(i - k_i).getOpen() - sr));
+                znam += (Math.pow(ohlcList.get(i).getOpen() - sr, 2));
+            }
+            k[k_i] = chisl / znam;
+        }
+        return k;
+    }
+
 
     public void createNET(int countHiddenLayer, int countNInHidden,
                           int countNInOut, double speed, double E, int epoch,
                           IFunction hiddenF, IFunction outF) {
-        net = new NET(sizeV, countHiddenLayer, countNInHidden, countNInOut, speed, E, epoch, hiddenF, outF);
+        net = new NET(K, countHiddenLayer, countNInHidden, countNInOut, speed, E, epoch, hiddenF, outF);
     }
 
     public void study() {
-        int size = 3 * N / 4;
-        double[][] xValue = new double[sizeV][size - sizeV];
-        double[] yValue = new double[size - sizeV];
+        XYSeries seriesTest = new XYSeries("Test");
+        XYSeries seriesTestT = new XYSeries("TestT");
+        XYSeries seriesStudy = new XYSeries("Study");
+        XYSeries seriesStudyT = new XYSeries("StudyT");
+        XYSeriesCollection dataset = new XYSeriesCollection();
+
+        double[][] xValue = new double[K][nStudy];
+        double[] yValue = new double[nStudy];
 
         double yy = (yb - ya);
         int index = 0;
-        for (int i = 0; i < sizeV; i++) {
+        for (int i = 0; i < K; i++) {
             index = 0;
-            for (int j = i; j < size - sizeV + i; j++) {
-                xValue[i][index] = (Y[j] - ya) / yy;
+            for (int j = i; j < nStudy + i; j++) {
+                xValue[i][index] = (ohlcList.get(j).getOpen() - ya) / yy;
                 index++;
             }
         }
         index = 0;
-        for (int i = sizeV; i < size; i++) {
-            yValue[index] = (Y[i] - ya) / yy;
+        for (int i = K; i < nStudy - 1; i++) {
+            yValue[index] = (ohlcList.get(i).getOpen() - ya) / yy;
             index++;
         }
 
         net.study(xValue, yValue);
-        double[] ansY = new double[size - sizeV];
-        for (int i = 0; i < size - sizeV; i++) {
-            ansY[i] = Y[i + sizeV];
+        double[] ansY = new double[nStudy];
+        for (int i = 0; i < nStudy - K; i++) {
+            ansY[i] = ohlcList.get(i + K).getOpen();
         }
         double[] ans = net.test(xValue);
         System.out.println("------Study-------");
         for (int i = 0; i < ans.length; i++) {
             double answer = ans[i] * yy + ya;
-            System.out.println("x= " + answer + " y= " + ansY[i]);
+            System.out.println("guess= " + answer + " real= " + ansY[i]);
+            seriesStudy.add(i, answer);
+            seriesStudyT.add(i, ansY[i]);
         }
-    }
 
-    private void createXY() {
-        double step = (tb - ta) / N;
-        double noise = (tb - ta) * 0.2;
-        for (int i = 0; i < N; i++) {
-            X[i] = ta + step * i + noise;
-            Y[i] = Math.sin(2 * X[i]) * X[i];
-            if (Y[i] > yb) {
-                yb = Y[i];
-            }
-            if (Y[i] < ya) {
-                ya = Y[i];
+        System.out.println("------Test-------");
+        xValue = new double[K][nTest];
+        for (int i = 0; i < K; i++) {
+            index = 0;
+            for (int j = i + nStudy; j < N - K + i; j++) {
+                xValue[i][index] = (ohlcList.get(j).getOpen() - ya) / yy;
+                index++;
             }
         }
+        ansY = new double[nTest];
+        for (int i = 0; i < nTest; i++) {
+            ansY[i] = ohlcList.get(i + nStudy).getOpen();
+        }
+        ans = net.test(xValue);
+        for (int i = 0; i < ans.length; i++) {
+            double answer = ans[i] * yy + ya;
+            System.out.println("guess= " + answer + " real= " + ansY[i]);
+            seriesTest.add(i + nStudy, answer);
+            seriesTestT.add(i + nStudy, ansY[i]);
+        }
+
+        dataset.addSeries(seriesTest);
+        dataset.addSeries(seriesTestT);
+        dataset.addSeries(seriesStudy);
+        dataset.addSeries(seriesStudyT);
+
+        plot.setDataset(dataset);
     }
 
     public double[][] getPointsToGraph() {
 
-        int c = N / 4 - sizeV;
         for (int i = 0; i < 4; i++) {
-            pointsEd[i] = new double[c];
+            pointsEd[i] = new double[nTest - K];
         }
         int index = 0;
         int begin = 3 * N / 4;
-        double[][] xxValue = new double[sizeV][c];
+        double[][] xxValue = new double[K][nTest - K];
         double yy = (yb - ya);
-        for (int i = 0; i < sizeV; i++) {
+        for (int i = 0; i < K; i++) {
             index = 0;
-            for (int j = begin + i; j < N - sizeV + i; j++) {
-                xxValue[i][index] = (Y[j] - ya) / yy;
+            for (int j = begin + i; j < nTest - K + i; j++) {
+                xxValue[i][index] = (ohlcList.get(i).getOpen() - ya) / yy;
                 index++;
             }
         }
         index = 0;
-        for (int i = begin + sizeV; i < N; i++) {
-            pointsEd[0][index] = X[i];
-            pointsEd[1][index] = Y[i];
-            pointsEd[2][index] = X[i];
+        for (int i = begin + K; i < nStudy; i++) {
+            pointsEd[0][index] = ohlcList.get(i).getClose();
+            pointsEd[1][index] = ohlcList.get(i).getOpen();
+            pointsEd[2][index] = ohlcList.get(i).getClose();
             index++;
         }
         eTest = 0;
         double[] ans = net.test(xxValue);
 
-        for (int i = 0; i < c; i++) {
+        for (int i = 0; i < nTest - K; i++) {
             pointsEd[3][i] = ans[i] * yy + ya;
-            double err = Y[begin + sizeV + i] - pointsEd[3][i];
+            double err = ohlcList.get(begin + K + i).getOpen() - pointsEd[3][i];
             err *= err;
             eTest += err;
         }
-        eTest = eTest / c;
+        eTest = eTest / nTest - K;
         eTest = Math.sqrt(eTest);
         return pointsEd;
 
@@ -129,35 +213,33 @@ public class Handler {
 
     public double[][] getEducationPointsToGraph() {
 
-        int c = 3 * N / 4 - sizeV;
-        //int c = N - sizeV;
+        int c = 3 * N / 4 - K;
         for (int i = 0; i < 4; i++) {
             pointsEd[i] = new double[c];
         }
 
-
-        double[][] xxValue = new double[sizeV][c];
+        double[][] xxValue = new double[K][c];
         double yy = (yb - ya);
         int index = 0;
-        for (int i = 0; i < sizeV; i++) {
+        for (int i = 0; i < K; i++) {
             index = 0;
             for (int j = i; j < c + i; j++) {
-                xxValue[i][index] = (Y[j] - ya) / yy;
+                xxValue[i][index] = (ohlcList.get(j).getOpen() - ya) / yy;
                 index++;
             }
         }
         index = 0;
-        for (int i = sizeV; i < c + sizeV; i++) {
-            pointsEd[0][index] = X[i];
-            pointsEd[1][index] = Y[i];
-            pointsEd[2][index] = X[i];
+        for (int i = K; i < c + K; i++) {
+            pointsEd[0][index] = ohlcList.get(i).getClose();
+            pointsEd[1][index] = ohlcList.get(i).getOpen();
+            pointsEd[2][index] = ohlcList.get(i).getClose();
             index++;
         }
         eEd = 0;
         double[] ans = net.test(xxValue);
         for (int i = 0; i < c; i++) {
             pointsEd[3][i] = ans[i] * yy + ya;
-            double err = Y[i + sizeV] - pointsEd[3][i];
+            double err = ohlcList.get(i + K).getOpen() - pointsEd[3][i];
             err *= err;
             eEd += err;
         }

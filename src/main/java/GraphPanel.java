@@ -105,7 +105,7 @@ public class GraphPanel extends JPanel {
                     maxX *= d;
                     minY *= d;
                     maxY *= d;
-                    if(minX > 0) minX = 0;
+                    //if(minX > 0) minX = 0;
                     double m_x = (double) (WIDTH - 15) / (maxX - minX);
                     double m_y = (double) (HEIGHT - 25) / (maxY - minY);
                     g2d.setColor(Color.BLACK);

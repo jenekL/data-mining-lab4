@@ -4,7 +4,6 @@
  */
 
 /**
- *
  * @author Jenya
  */
 public class NET {

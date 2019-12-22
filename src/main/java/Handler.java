@@ -24,19 +24,15 @@ public class Handler {
     private double yb = -1000;
     private int N = 0;
     private NET net;
-    private double[][] pointsEd;
-    private double eEd = 0;
-    private double eTest = 0;
 
     private List<OHLC> ohlcList = new ArrayList<>();
     private int nTest;
     private int nStudy;
 
-    XYPlot  plot;
+    XYPlot plot;
 
     public Handler(int sizeV, XYPlot plot) {
         this.K = sizeV;
-        pointsEd = new double[4][];
 
         try {
             readFile("data.csv");
@@ -55,6 +51,9 @@ public class Handler {
 
     private void readFile(String filename) throws FileNotFoundException {
         N = 0;
+
+        double max = -100000;
+        double min = 100000;
 
         Scanner myReader = new Scanner(new File(filename));
         while (myReader.hasNextLine()) {
@@ -97,7 +96,6 @@ public class Handler {
         }
         return k;
     }
-
 
     public void createNET(int countHiddenLayer, int countNInHidden,
                           int countNInOut, double speed, double E, int epoch,
@@ -150,12 +148,14 @@ public class Handler {
         xValue = new double[K][nTest];
         for (int i = 0; i < K; i++) {
             index = 0;
-            for (int j = i + nStudy; j < N - K + i; j++) {
+            for (int j = nStudy; j < N; j++) {
                 xValue[i][index] = (ohlcList.get(j).getOpen() - ya) / yy;
                 index++;
             }
         }
+
         ansY = new double[nTest];
+
         for (int i = 0; i < nTest; i++) {
             ansY[i] = ohlcList.get(i + nStudy).getOpen();
         }
@@ -174,5 +174,4 @@ public class Handler {
 
         plot.setDataset(dataset);
     }
-
 }

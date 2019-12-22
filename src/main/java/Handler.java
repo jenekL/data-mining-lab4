@@ -132,10 +132,12 @@ public class Handler {
 
         net.study(xValue, yValue);
         double[] ansY = new double[nStudy];
-        for (int i = 0; i < nStudy - K; i++) {
+        for (int i = 0; i < nStudy; i++) {
             ansY[i] = ohlcList.get(i + K).getOpen();
         }
+
         double[] ans = net.test(xValue);
+
         System.out.println("------Study-------");
         for (int i = 0; i < ans.length; i++) {
             double answer = ans[i] * yy + ya;
@@ -173,92 +175,4 @@ public class Handler {
         plot.setDataset(dataset);
     }
 
-    public double[][] getPointsToGraph() {
-
-        for (int i = 0; i < 4; i++) {
-            pointsEd[i] = new double[nTest - K];
-        }
-        int index = 0;
-        int begin = 3 * N / 4;
-        double[][] xxValue = new double[K][nTest - K];
-        double yy = (yb - ya);
-        for (int i = 0; i < K; i++) {
-            index = 0;
-            for (int j = begin + i; j < nTest - K + i; j++) {
-                xxValue[i][index] = (ohlcList.get(i).getOpen() - ya) / yy;
-                index++;
-            }
-        }
-        index = 0;
-        for (int i = begin + K; i < nStudy; i++) {
-            pointsEd[0][index] = ohlcList.get(i).getClose();
-            pointsEd[1][index] = ohlcList.get(i).getOpen();
-            pointsEd[2][index] = ohlcList.get(i).getClose();
-            index++;
-        }
-        eTest = 0;
-        double[] ans = net.test(xxValue);
-
-        for (int i = 0; i < nTest - K; i++) {
-            pointsEd[3][i] = ans[i] * yy + ya;
-            double err = ohlcList.get(begin + K + i).getOpen() - pointsEd[3][i];
-            err *= err;
-            eTest += err;
-        }
-        eTest = eTest / nTest - K;
-        eTest = Math.sqrt(eTest);
-        return pointsEd;
-
-    }
-
-    public double[][] getEducationPointsToGraph() {
-
-        int c = 3 * N / 4 - K;
-        for (int i = 0; i < 4; i++) {
-            pointsEd[i] = new double[c];
-        }
-
-        double[][] xxValue = new double[K][c];
-        double yy = (yb - ya);
-        int index = 0;
-        for (int i = 0; i < K; i++) {
-            index = 0;
-            for (int j = i; j < c + i; j++) {
-                xxValue[i][index] = (ohlcList.get(j).getOpen() - ya) / yy;
-                index++;
-            }
-        }
-        index = 0;
-        for (int i = K; i < c + K; i++) {
-            pointsEd[0][index] = ohlcList.get(i).getClose();
-            pointsEd[1][index] = ohlcList.get(i).getOpen();
-            pointsEd[2][index] = ohlcList.get(i).getClose();
-            index++;
-        }
-        eEd = 0;
-        double[] ans = net.test(xxValue);
-        for (int i = 0; i < c; i++) {
-            pointsEd[3][i] = ans[i] * yy + ya;
-            double err = ohlcList.get(i + K).getOpen() - pointsEd[3][i];
-            err *= err;
-            eEd += err;
-        }
-        eEd = eEd / c;
-        eEd = Math.sqrt(eEd);
-        return pointsEd;
-    }
-
-    /**
-     * @return the eEd
-     */
-    public double geteEd() {
-        return eEd;
-    }
-
-    /**
-     * @return the eTest
-     */
-    public double geteTest() {
-        return eTest;
-    }
 }

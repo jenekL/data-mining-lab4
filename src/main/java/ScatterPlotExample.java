@@ -28,8 +28,7 @@ public class ScatterPlotExample extends JFrame {
         ChartPanel panel = new ChartPanel(chart);
         setContentPane(panel);
 
-
-        int sizeNeuronsPerLayout = 10;
+        int sizeNeuronsPerLayout = 5;
         double alpha = 10;
         int numOfLayoutsHidden = 1;
         int numOfNeuronsPerLayoutHidden = 50;
@@ -44,8 +43,6 @@ public class ScatterPlotExample extends JFrame {
                 numOfNeuronsInOut, speedStudying,
                 accuracy, numOfEpoch,
                 new SigmoidFunction(alpha), new LinearFunction());
-
-        //new MainFrame(handler);
 
         handler.study();
     }

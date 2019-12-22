@@ -3,12 +3,20 @@
  * and open the template in the editor.
  */
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +51,20 @@ public class Handler {
         double[] k_study = getK(nStudy);
         double[] k_test = getK(nTest);
 
+        XYSeries series = new XYSeries("K");
+        for(int i = 0; i < k_study.length; i++){
+            series.add(i + 1, k_study[i]);
+        }
+        XYSeriesCollection dataset = new XYSeriesCollection(series);
+        savePNG(dataset, "k_study.png");
+
+        series.clear();
+        for(int i = 0; i < k_test.length; i++){
+            series.add(i + 1, k_test[i]);
+        }
+        XYSeriesCollection dataset1 = new XYSeriesCollection(series);
+        savePNG(dataset1, "k_test.png");
+
         System.out.println(Arrays.toString(k_study));
         System.out.println(Arrays.toString(k_test));
 
@@ -51,9 +73,6 @@ public class Handler {
 
     private void readFile(String filename) throws FileNotFoundException {
         N = 0;
-
-        double max = -100000;
-        double min = 100000;
 
         Scanner myReader = new Scanner(new File(filename));
         while (myReader.hasNextLine()) {
@@ -108,13 +127,16 @@ public class Handler {
         XYSeries seriesTestT = new XYSeries("TestT");
         XYSeries seriesStudy = new XYSeries("Study");
         XYSeries seriesStudyT = new XYSeries("StudyT");
+        XYSeries seriesErrorStudy = new XYSeries("ErrorStudy");
+        XYSeries seriesErrorTest = new XYSeries("ErrorTest");
         XYSeriesCollection dataset = new XYSeriesCollection();
+        XYSeriesCollection datasetError = new XYSeriesCollection();
 
         double[][] xValue = new double[K][nStudy];
         double[] yValue = new double[nStudy];
 
         double yy = (yb - ya);
-        int index = 0;
+        int index;
         for (int i = 0; i < K; i++) {
             index = 0;
             for (int j = i; j < nStudy + i; j++) {
@@ -140,6 +162,7 @@ public class Handler {
         for (int i = 0; i < ans.length; i++) {
             double answer = ans[i] * yy + ya;
             System.out.println("guess= " + answer + " real= " + ansY[i]);
+            seriesErrorStudy.add(i, Math.abs(ansY[i] - answer));
             seriesStudy.add(i, answer);
             seriesStudyT.add(i, ansY[i]);
         }
@@ -163,6 +186,7 @@ public class Handler {
         for (int i = 0; i < ans.length; i++) {
             double answer = ans[i] * yy + ya;
             System.out.println("guess= " + answer + " real= " + ansY[i]);
+            seriesErrorTest.add(i, Math.abs(ansY[i] - answer));
             seriesTest.add(i + nStudy, answer);
             seriesTestT.add(i + nStudy, ansY[i]);
         }
@@ -172,6 +196,33 @@ public class Handler {
         dataset.addSeries(seriesStudy);
         dataset.addSeries(seriesStudyT);
 
+        datasetError.addSeries(seriesErrorStudy);
+        datasetError.addSeries(seriesErrorTest);
+
         plot.setDataset(dataset);
+
+        savePNG(datasetError, "error.png");
+    }
+
+    private void savePNG(XYSeriesCollection datasetError, String filename) {
+        JFreeChart chart1 = ChartFactory.createXYLineChart(
+                "ERROR",
+                "X-Axis", "Y-Axis", datasetError, PlotOrientation.VERTICAL,
+                true, true, true);
+
+        XYPlot errorPlot = (XYPlot) chart1.getPlot();
+        errorPlot.setDataset(datasetError);
+        errorPlot = (XYPlot) chart1.getPlot();
+        errorPlot.setBackgroundPaint(new Color(255, 255, 255));
+        try {
+            OutputStream out = new FileOutputStream(filename);
+            ChartUtilities.writeChartAsPNG(out,
+                    chart1,
+                    1920,
+                    1080);
+
+        } catch (IOException ignored) {
+
+        }
     }
 }

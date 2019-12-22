@@ -35,9 +35,9 @@ public class Handler {
     }
 
     public void createNET(int countHiddenLayer, int countNInHidden,
-                          int countNInOut, double a, double E, int epoch,
+                          int countNInOut, double speed, double E, int epoch,
                           IFunction hiddenF, IFunction outF) {
-        net = new NET(sizeV, countHiddenLayer, countNInHidden, countNInOut, a, E, epoch, hiddenF, outF);
+        net = new NET(sizeV, countHiddenLayer, countNInHidden, countNInOut, speed, E, epoch, hiddenF, outF);
     }
 
     public void study() {

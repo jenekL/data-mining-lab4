@@ -4,23 +4,24 @@
  */
 
 /**
- *
  * @author Jenya
  */
-public class HyperbolicFunction implements IFunction {
-     private double alpha;
-    
-    public HyperbolicFunction(double alpha){
+public class SigmoidFunction implements IFunction {
+    private double alpha;
+
+    SigmoidFunction(double alpha) {
         this.alpha = alpha;
     }
+
     @Override
     public double compute(double x) {
-        return Math.tanh((x/alpha));
+        double r = (1 / (1 + Math.exp(-1 * alpha * x)));
+        return r;
     }
 
     @Override
     public double computeFirstDerivative(double x) {
         double com = this.compute(x);
-        return (1 + com ) * (1 - com);
+        return com * (1 - com);
     }
 }

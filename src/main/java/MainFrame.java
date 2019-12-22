@@ -125,13 +125,4 @@ public class MainFrame extends JFrame {
             ex.printStackTrace();
         }
     }
-
-    public void showMessage(String message) {
-        try {
-            Document doc = textPane.getDocument();
-            doc.insertString(doc.getLength(), message + "\n", null);
-        } catch (BadLocationException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }

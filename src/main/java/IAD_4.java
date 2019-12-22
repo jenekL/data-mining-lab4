@@ -31,7 +31,7 @@ public class IAD_4 {
         handler.createNET(numOfLayoutsHidden, numOfNeuronsPerLayoutHidden,
                 numOfNeuronsInOut, speedStudying,
                 accuracy, numOfEpoch,
-                new HyperbolicFunction(alpha), new LinearFunction());
+                new SigmoidFunction(alpha), new LinearFunction());
 
         new MainFrame(handler);
     }
